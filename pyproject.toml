@@ -1,0 +1,51 @@
+[project]
+name = "landing-page-for-viral-marketing"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "django==6.0.3",
+    "djangorestframework==3.17.0",
+    "djangorestframework-simplejwt==5.5.1",
+    "psycopg2-binary==2.9.10",
+    "python-dotenv==1.0.1",
+]
+
+[dependency-groups]
+dev = [
+    "coverage>=7.13.5",
+    "django-extensions>=4.1",
+    "ipython>=9.12.0",
+    "pre-commit>=4.5.1",
+    "pytest>=9.0.2",
+    "ruff>=0.15.9",
+]
+
+
+
+[tool.ruff]
+line-length = 88  # black과 호환
+target-version = "py313"
+exclude = ["migrations"]  # Django 마이그레이션 파일 제외
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle 오류
+    "F",  # pyflakes
+    "I",  # isort (임포트 정렬)
+    "DJ", # Django-specific 규칙
+    "UP", # pyupgrade (최신 Python 문법 적용)
+    "B",  # bugbear (잠재적 버그 검사)
+    "Q",  # flake8-quotes (따옴표 스타일 강제)
+]
+ignore = ["E203"]  # black과 호환성 위해
+fixable = ["ALL"]  # 모든 수정 가능한 문제 자동 수정
+
+[tool.ruff.format]
+quote-style = "double"  # black과 일치
+indent-style = "space"
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint.per-file-ignores]
+"config/settings.py" = ["F403", "F405", "E501"]
