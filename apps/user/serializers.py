@@ -1,5 +1,5 @@
+from django.contrib.auth import authenticate, get_user_model
 from rest_framework import serializers
-from django.contrib.auth import get_user_model, authenticate
 
 User = get_user_model()
 
@@ -20,7 +20,7 @@ class UserSignUPSerializer(serializers.ModelSerializer):
         )
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = User
