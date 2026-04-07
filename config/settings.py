@@ -21,6 +21,8 @@ ALLOWED_HOSTS = ["*"]
 
 MY_APPS = [
     "apps.user.apps.UserConfig",
+    "apps.account.apps.AccountConfig",
+    "apps.transaction.apps.TransactionConfig",
 ]
 
 DJANGO_APPS = [
