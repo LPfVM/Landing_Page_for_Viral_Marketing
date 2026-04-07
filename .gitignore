@@ -3,6 +3,7 @@
 .docker/
 .python-version
 db.sqlite*
+.idea/
 
 # Python-generated files
 __pycache__/

@@ -13,13 +13,15 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 # AUTH_USER_MODEL = 'user.User'
 
 # Application definition
 
-MY_APPS = ["apps.user"]
+MY_APPS = [
+    "apps.user.apps.UserConfig",
+]
 
 DJANGO_APPS = [
     "django.contrib.admin",
