@@ -13,13 +13,11 @@ class TestUserManager(TestCase):
             "nickname": "test_name",
         }
 
-
-# create_user() 테스트
+    # create_user() 테스트
     def test_create_user(self):
         self.assertEqual(User.objects.count(), 0)
 
         user = User.objects.create_user(**self.data)
-
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(user.email, self.data["email"])
         self.assertTrue(user.check_password(self.data["password"]))
@@ -30,8 +28,7 @@ class TestUserManager(TestCase):
         self.assertFalse(user.is_superuser)
         self.assertIsNone(user.last_login)
 
-
-# email 없을 때
+    # email 없을 때
     def test_invalid_email(self):
         with self.assertRaises(ValueError) as context:
             User.objects.create_user(
@@ -41,8 +38,7 @@ class TestUserManager(TestCase):
             )
         self.assertEqual(str(context.exception), "이메일은 필수입니다.")
 
-
-# normalize_email 테스트
+    # normalize_email 테스트
     def test_normalize_email(self):
         user = User.objects.create_user(
             email="TEST@TEST.COM",
@@ -51,8 +47,7 @@ class TestUserManager(TestCase):
         )
         self.assertEqual(user.email, "TEST@test.com")
 
-
-# create_superuser 테스트
+    # create_superuser 테스트
     def test_create_superuser(self):
         user = User.objects.create_superuser(**self.data)
 
@@ -75,7 +70,7 @@ class TestUser(TestCase):
             "nickname": "test_name",
         }
 
-# nickname 유니크 조건 테스트
+    # nickname 유니크 조건 테스트
     def test_unique_nickname(self):
         with self.assertRaises(IntegrityError):
             User.objects.create_user(**self.data)
@@ -85,8 +80,7 @@ class TestUser(TestCase):
                 nickname=self.data["nickname"],
             )
 
-
-# nickname 최대 길이 테스트 50자
+    # nickname 최대 길이 테스트 50자
     def test_valid_max_length_nickname(self):
         User.objects.create_user(
             email=self.data["email"],
@@ -95,7 +89,7 @@ class TestUser(TestCase):
         )
         self.assertEqual(User.objects.count(), 1)
 
-# nickname 최대 길이 테스트 51자
+    # nickname 최대 길이 테스트 51자
     def test_invalid_max_length_nickname(self):
         with self.assertRaises(DataError):
             User.objects.create_user(
@@ -104,7 +98,7 @@ class TestUser(TestCase):
                 nickname="test2" * 10 + "t",
             )
 
-# email 유니크 조건 테스트
+    # email 유니크 조건 테스트
     def test_unique_email(self):
         with self.assertRaises(IntegrityError):
             User.objects.create_user(**self.data)
@@ -114,8 +108,7 @@ class TestUser(TestCase):
                 nickname="test2_name",
             )
 
-
-# email 최대 길이 테스트 255자
+    # email 최대 길이 테스트 255자
     def test_valid_max_length_email(self):
         User.objects.create_user(
             email="t" * 246 + "@test.com",
@@ -124,13 +117,16 @@ class TestUser(TestCase):
         )
         self.assertEqual(User.objects.count(), 1)
 
-# email 최대 길이 조건 테스트 256자
+    # email 최대 길이 조건 테스트 256자
     def test_invalid_max_length_email(self):
         with self.assertRaises(DataError):
             User.objects.create_user(
                 email="t" * 247 + "@test.com",
+                password="test2_password",
+                nickname="test2_name",
+            )
 
-# has_perm 테스트
+    # has_perm 테스트
     def test_has_perm(self):
         user = User.objects.create_user(**self.data)
         admin = User.objects.create_superuser(
@@ -141,7 +137,7 @@ class TestUser(TestCase):
         self.assertFalse(user.has_perm("test"))
         self.assertTrue(admin.has_perm("test"))
 
-# has_module_perms 테스트
+    # has_module_perms 테스트
     def test_has_module_perms(self):
         user = User.objects.create_user(**self.data)
         admin = User.objects.create_superuser(
