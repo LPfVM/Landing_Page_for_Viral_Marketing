@@ -1,7 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from rest_framework import serializers
 
-from apps.user.serializers import UserProfileSerializer, UserSignUPSerializer
+from apps.user.serializers import (
+    UserLoginSerializer,
+    UserProfileSerializer,
+    UserSignUPSerializer,
+)
 
 User = get_user_model()
 
@@ -150,10 +155,9 @@ class TestUserProfileSerializer(TestCase):
         self.assertEqual(updated_user.nickname, updated_data["nickname"])
         self.assertTrue(updated_user.check_password(updated_data["password"]))
 
-    # patch 메소드인 경우, 필드가 하나 비어도 update가 제대로 동작하는지
+    # patch 메소드인 경우, 필드가 비어도 update가 제대로 동작하는지
     def test_patch_update(self):
         updated_data = {
-            "email": self.data["email"],
             "password": self.data["password"] + "2",
         }
         serializer = UserProfileSerializer(
@@ -161,6 +165,110 @@ class TestUserProfileSerializer(TestCase):
         )
         serializer.is_valid()
         updated_user = serializer.save()
-        self.assertEqual(updated_user.email, updated_data["email"])
+        self.assertEqual(updated_user.email, self.data["email"])
         self.assertEqual(updated_user.nickname, self.data["nickname"])
         self.assertTrue(updated_user.check_password(updated_data["password"]))
+
+
+class TestUserLoginSerializer(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="test@test.com",
+            nickname="test",
+            password="test_password",
+        )
+        self.data = {
+            "email": "test@test.com",
+            "password": "test_password",
+        }
+
+    # data가 valid한지
+    def test_data_is_valid(self):
+        serializer = UserLoginSerializer(data=self.data, context={"request": None})
+        self.assertTrue(serializer.is_valid())
+
+    # 필수 data가 빠졌을 때 valid 한지
+    def test_validate_missing_fields(self):
+        data = {
+            "email": self.data["email"],
+        }
+        serializer = UserLoginSerializer(data=data, context={"request": None})
+        self.assertFalse(serializer.is_valid())
+
+    # 필수 data가 빈 문자열일 때 valid 한지
+    def test_validate_blank_fields(self):
+        data = {
+            "email": self.data["email"],
+            "password": "",
+        }
+        serializer = UserLoginSerializer(data=data, context={"request": None})
+        self.assertFalse(serializer.is_valid())
+
+    # 필수 data가 None일 때 valid 한지
+    def test_validate_None_fields(self):
+        data = {
+            "email": self.data["email"],
+            "password": None,
+        }
+        serializer = UserLoginSerializer(data=data, context={"request": None})
+        self.assertFalse(serializer.is_valid())
+
+    # authenticate()가 각기 다른 data에 맞는 유저들을 잘 찾는지
+    def test_validate_authenticate(self):
+        user = User.objects.create_user(
+            email="test2@test.com",
+            nickname="test2",
+            password="test2_password",
+        )
+        data = {
+            "email": "test2@test.com",
+            "password": "test2_password",
+        }
+        serializer = UserLoginSerializer(data=self.data, context={"request": None})
+        serializer2 = UserLoginSerializer(data=data, context={"request": None})
+        serializer.is_valid()
+        serializer2.is_valid()
+        self.assertEqual(serializer.validated_data["user"], self.user)
+        self.assertEqual(serializer2.validated_data["user"], user)
+
+    # 잘못된 로그인 정보를 넣은 경우
+    def test_validate_is_not_user(self):
+        wrong_data = {
+            "email": self.data["email"],
+            "password": self.data["password"] + "2",
+        }
+        with self.assertRaises(serializers.ValidationError) as e:
+            serializer = UserLoginSerializer(data=wrong_data, context={"request": None})
+            serializer.is_valid(raise_exception=True)
+        self.assertEqual(
+            e.exception.detail["non_field_errors"][0], "유저 정보가 맞지 않습니다."
+        )
+
+    # PASSWORD가 없을 때 validate()가 잘 거르는지
+    def test_validate_is_not_password(self):
+        wrong_data = {"email": self.data["email"]}
+        with self.assertRaises(serializers.ValidationError) as e:
+            serializer = UserLoginSerializer(data=self.data, context={"request": None})
+            serializer.validate(data=wrong_data)
+        self.assertEqual(e.exception.detail[0], "이메일과 비밀번호는 필수입니다.")
+        self.assertEqual(e.exception.detail[0].code, "authenticate")
+
+    # email이 없을때 validate()가 잘 거르는지
+    def test_validate_is_not_email(self):
+        wrong_data = {"password": self.data["password"]}
+        with self.assertRaises(serializers.ValidationError) as e:
+            serializer = UserLoginSerializer(data=self.data, context={"request": None})
+            serializer.validate(data=wrong_data)
+        self.assertEqual(e.exception.detail[0], "이메일과 비밀번호는 필수입니다.")
+        self.assertEqual(e.exception.detail[0].code, "authenticate")
+
+    # validated_data가 의도한 것과 일치하는지
+    def test_serializer_validated_data(self):
+        serializer = UserLoginSerializer(data=self.data, context={"request": None})
+        serializer.is_valid()
+        self.assertEqual(serializer.validated_data["email"], self.data["email"])
+        self.assertEqual(serializer.validated_data["password"], self.data["password"])
+        self.assertEqual(serializer.validated_data["user"], self.user)
+        self.assertEqual(
+            set(serializer.validated_data.keys()), {"email", "password", "user"}
+        )
