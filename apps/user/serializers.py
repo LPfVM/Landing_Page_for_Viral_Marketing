@@ -9,43 +9,41 @@ class UserSignUPSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("nickname","password","email")
-    def create(self,validated_data):
-        password = validated_data.pop("password",None)
-        if password is None:
-            raise ValueError("password is required")
-        return User.objects.create_user(
-            password = password,
-            **validated_data
-        )
+        fields = ("nickname", "password", "email")
+
+    def create(self, validated_data):
+        password = validated_data.pop("password", None)
+
+        return User.objects.create_user(password=password, **validated_data)
+
 
 class UserProfileSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = User
-        fields = ("nickname","email","password")
-        read_only_fields  =("email",)
+        fields = ("nickname", "email", "password")
+        read_only_fields = ("email",)
 
     def update(self, instance, validated_data):
-        instance.nickname = validated_data.get("nickname",instance.nickname)
-        password = validated_data.get("password",None)
+        instance.nickname = validated_data.get("nickname", instance.nickname)
+        password = validated_data.get("password", None)
         if password:
             instance.set_password(password)
         instance.save()
         return instance
 
+
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
-    def validate(self,data):
+
+    def validate(self, data):
         email = data.get("email")
         password = data.get("password")
         if email and password:
             user = authenticate(
-                request=self.context.get("request"),
-                email = email,
-                password = password
+                request=self.context.get("request"), email=email, password=password
             )
             if not user:
                 raise serializers.ValidationError(
@@ -54,9 +52,7 @@ class UserLoginSerializer(serializers.Serializer):
         else:
             raise serializers.ValidationError(
                 detail="이메일과 비밀번호는 필수입니다.",
-                code = "authenticate",
+                code="authenticate",
             )
         data["user"] = user
         return data
-
-
