@@ -16,6 +16,7 @@ class Transaction(models.Model):
     # 기본 정보
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True)
+
     # 분류용 필드 추가
     category = models.CharField(max_length=50, blank=True, verbose_name="카테고리")
 
