@@ -26,11 +26,11 @@ class TestUserSignUPSerializer(TestCase):
         self.assertFalse(serializer.is_valid())
         self.assertIn("email", serializer.errors)
 
-    # def test_is_valid_missing_field2(self):
-    #     self.data.pop("password")
-    #     serializer = UserSignUPSerializer(data=self.data)
-    #     self.assertFalse(serializer.is_valid())
-    #     self.assertIn("password", serializer.errors)
+    def test_is_valid_missing_field2(self):
+        self.data.pop("password")
+        serializer = UserSignUPSerializer(data=self.data)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("password", serializer.errors)
 
     # email 필드를 빈 값으로 했을 때 valid 한지
     def test_is_valid_blank_fields(self):
@@ -39,11 +39,11 @@ class TestUserSignUPSerializer(TestCase):
         self.assertFalse(serializer.is_valid())
         self.assertIn("email", serializer.errors)
 
-    # def test_is_valid_blank_field2(self):
-    #     self.data["password"] = ""
-    #     serializer = UserSignUPSerializer(data=self.data)
-    #     self.assertFalse(serializer.is_valid())
-    #     self.assertIn("password", serializer.errors)
+    def test_is_valid_blank_field2(self):
+        self.data["password"] = ""
+        serializer = UserSignUPSerializer(data=self.data)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("password", serializer.errors)
 
     # is_valid()를 통과했을 때 validate_data와 self.data의 값이 같은지
     def test_validated_data(self):

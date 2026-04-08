@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+from django.shortcuts import get_object_or_404
+>>>>>>> 8a8b04d (format: ruff)
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -35,6 +39,7 @@ class AccountCreateView(APIView):
 
 class AccountDetailView(APIView):
     permission_classes = [IsAuthenticated]
+
 
     def get(self, request, pk):
         account = get_account(user=request.user, pk=pk)

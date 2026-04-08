@@ -34,6 +34,7 @@ class AccountCreateSerializer(serializers.ModelSerializer):
         return value
 
 
+
 class AccountDetailSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(source="user.id", read_only=True)
 

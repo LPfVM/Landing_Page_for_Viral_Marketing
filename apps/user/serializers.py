@@ -13,6 +13,7 @@ class UserSignUPSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop("password", None)
+
         return User.objects.create_user(password=password, **validated_data)
 
 
