@@ -4,8 +4,9 @@ from django.core.signing import (
     SignatureExpired,
 )
 from rest_framework import status
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
@@ -19,7 +20,7 @@ from .serializers import (
 from .service import (
     activate_email_user,
     deactivate_user,
-    send_verifi,
+    send_verification_email,
     verify_email_code,
 )
 
@@ -33,7 +34,7 @@ class UserSignUpView(APIView):
         serializer = UserSignUPSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            send_verifi(user, request)
+            send_verification_email(user, request)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(
@@ -85,8 +86,13 @@ class UserLoginView(APIView):
 
 
 class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get_object(self, pk):
-        return get_object_or_404(User, pk=pk)
+        user = get_object_or_404(User, pk=pk)
+        if self.request.user != user:
+            raise PermissionDenied("권환 없음")
+        return user
 
     def get(self, request, pk):
         user = self.get_object(pk=pk)

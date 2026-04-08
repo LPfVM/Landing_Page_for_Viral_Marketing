@@ -11,7 +11,7 @@ from utils.email import send_email
 User = get_user_model()
 
 
-def send_verifi(user, request):
+def send_verification_email(user, request):
     signer = TimestampSigner()
     signed_user_email = signer.sign(user.email)
     signer_dump = dumps(signed_user_email)
