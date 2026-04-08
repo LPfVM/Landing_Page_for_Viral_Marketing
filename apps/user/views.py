@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user_model, login
+from django.contrib.auth import get_user_model
 from django.core.signing import (
     BadSignature,
     SignatureExpired,
@@ -8,6 +8,8 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import (
     UserLoginSerializer,
@@ -69,8 +71,13 @@ class UserLoginView(APIView):
         )
         if serializer.is_valid():
             user = serializer.validated_data["user"]
-            login(request, user)
-            return Response({"message": "로그인 성공"})
+            refresh = RefreshToken.for_user(user)
+            return Response(
+                {
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                }
+            )
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST,
@@ -101,4 +108,23 @@ class UserProfileView(APIView):
         return Response(
             {"message": "Deleted successfully"},
             status=status.HTTP_204_NO_CONTENT,
+        )
+
+
+class UserLogoutView(APIView):
+    def post(self, request):
+        refresh_token = request.data.get("refresh")
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+        except TokenError:
+            return Response(
+                {"message": "유효하지 않은 토큰 입니다."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response(
+            {
+                "message": "로그아웃 되었습니다.",
+            },
+            status=status.HTTP_200_OK,
         )
