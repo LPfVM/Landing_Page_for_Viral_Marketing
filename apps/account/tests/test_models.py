@@ -15,6 +15,8 @@ class TestAccount(TestCase):
         self.user = User.objects.create_user(
             email="test@test.com", nickname="test", password="test_password"
         )
+        self.user.is_active = True
+        self.user.save()
         self.data = {
             "user": self.user,
             "password": "account_password",
