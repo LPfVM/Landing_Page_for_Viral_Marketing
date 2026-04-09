@@ -17,15 +17,10 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
-from drf_spectacular.views import (
-    SpectacularAPIView,
-    SpectacularRedocView,
-    SpectacularSwaggerView,
-)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("apps.user.urls")),
-    path("accounts/", include("apps.account.urls")),
-    path("api/v1/transaction/", include("apps.transaction.urls")),
+    path("", include("apps.account.urls")),
+    path("", include("apps.transaction.urls")),
 ]
