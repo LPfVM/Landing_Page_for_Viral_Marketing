@@ -177,6 +177,8 @@ class TestUserLoginSerializer(TestCase):
             nickname="test",
             password="test_password",
         )
+        self.user.is_active = True
+        self.user.save()
         self.data = {
             "email": "test@test.com",
             "password": "test_password",
@@ -220,6 +222,8 @@ class TestUserLoginSerializer(TestCase):
             nickname="test2",
             password="test2_password",
         )
+        user.is_active = True
+        user.save()
         data = {
             "email": "test2@test.com",
             "password": "test2_password",

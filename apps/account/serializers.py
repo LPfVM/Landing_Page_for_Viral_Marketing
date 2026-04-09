@@ -17,6 +17,11 @@ class AccountCreateSerializer(serializers.ModelSerializer):
 
         read_only_fields = ["id"]
 
+    def create(self, validated_data):
+        user = self.context["request"].user
+        account = Account.objects.create(user=user, **validated_data)
+        return account
+
     # 예외처리
     def validate_bank_name(self, value):
         if not value:
@@ -32,7 +37,6 @@ class AccountCreateSerializer(serializers.ModelSerializer):
         if value < 0:
             raise serializers.ValidationError("잔액은 0보다 작을 수 없습니다.")
         return value
-
 
 
 class AccountDetailSerializer(serializers.ModelSerializer):
