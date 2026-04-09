@@ -24,6 +24,7 @@ MY_APPS = [
     "apps.user.apps.UserConfig",
     "apps.account.apps.AccountConfig",
     "apps.transaction.apps.TransactionConfig",
+    "apps.analysis.apps.AnalysisConfig",
 ]
 
 DJANGO_APPS = [
@@ -122,7 +123,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 
 STATIC_URL = "static/"
-
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 APPEND_SLASH = False
 
