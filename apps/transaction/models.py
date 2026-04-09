@@ -41,4 +41,4 @@ class Transaction(models.Model):
         return (
             f"[{self.get_transaction_type_display()}] "
             f"{self.title} - {amount_with_comma}원"
-        )
+        )  # noqa: E501
