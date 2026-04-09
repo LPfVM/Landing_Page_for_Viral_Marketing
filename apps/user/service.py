@@ -16,10 +16,7 @@ def send_verification_email(user, request):
     signed_user_email = signer.sign(user.email)
     signer_dump = dumps(signed_user_email)
 
-    url = (
-        f"{request.scheme}://{request.META['HTTP_HOST']}"
-        f"/users/verify/?code={signer_dump}"
-    )
+    url = f"{request.scheme}://{request.get_host()}/users/verify/?code={signer_dump}"
     subject = "[Landing_page_for_Viral_Marketing] 이메일 인증을 완료해주세요"
     message = f"다음 링크를 클릭해주세요 {url}"
     send_email(subject, message, user.email)
