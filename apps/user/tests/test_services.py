@@ -1,4 +1,6 @@
+import re
 from datetime import datetime, timedelta
+from urllib.parse import parse_qs, urlparse
 
 from django.contrib.auth import get_user_model
 from django.core import mail
@@ -7,7 +9,12 @@ from django.test import TestCase
 from freezegun import freeze_time
 from rest_framework.test import APIRequestFactory
 
-from apps.user.service import send_verification_email, verify_email_code
+from apps.user.service import (
+    activate_email_user,
+    deactivate_user,
+    send_verification_email,
+    verify_email_code,
+)
 
 User = get_user_model()
 
@@ -17,8 +24,6 @@ class TestSendVerificationEmail(TestCase):
         self.user = User.objects.create_user(
             email="test@test.com", nickname="test", password="test_password"
         )
-        self.user.is_active = True
-        self.user.save()
         self.request = APIRequestFactory().post("/")
         self.request.META["HTTP_HOST"] = self.request.get_host()
 
@@ -51,8 +56,6 @@ class TestVerifyEmailCode(TestCase):
         self.user = User.objects.create_user(
             email="test@test.com", nickname="test", password="test_password"
         )
-        self.user.is_active = True
-        self.user.save()
         signer = TimestampSigner()
         signed_user_email = signer.sign(self.user.email)
         self.code = dumps(signed_user_email)
@@ -73,7 +76,7 @@ class TestVerifyEmailCode(TestCase):
         with self.assertRaises(TypeError):
             verify_email_code(self.code)
 
-    # verify_email_code의 시간 만료값이 잘 작동하는지
+    # verify_email_code의 시간 만료 설정이 잘 작동하는지
     def test_verify_email_code_expired(self):
         with freeze_time(datetime.now() + timedelta(minutes=31)):
             with self.assertRaises(SignatureExpired):
@@ -81,4 +84,31 @@ class TestVerifyEmailCode(TestCase):
 
 
 class TestActivateEmailUser(TestCase):
-    def setUp(self): ...
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="test@test.com", nickname="test", password="test_password"
+        )
+        self.request = APIRequestFactory().post("/")
+        self.request.META["HTTP_HOST"] = self.request.get_host()
+
+    # activate_email_user까지의 일련의 과정이 성공적으로 동작하는지
+    def test_successful_activate_user(self):
+        send_verification_email(self.user, self.request)
+        url = re.search(r"https?://\S+", mail.outbox[0].body).group()
+        parsed_url = urlparse(url)
+        code = parse_qs(parsed_url.query)["code"][0]
+        email = verify_email_code(code)
+        user = activate_email_user(email)
+        self.assertEqual(user.email, self.user.email)
+        self.assertEqual(user.is_active, True)
+
+
+class TestDeactivateUser(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="test@test.com", nickname="test", password="test_password"
+        )
+
+    def test_deactivate_user(self):
+        deactivate_user(user=self.user)
+        self.assertEqual(self.user.is_active, False)
