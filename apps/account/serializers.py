@@ -17,9 +17,22 @@ class AccountCreateSerializer(serializers.ModelSerializer):
 
         read_only_fields = ["id"]
 
-    def create(self, validated_data):
-        validated_data["user"] = self.context["request"].user
-        return super().create(validated_data)
+    # 예외처리
+    def validate_bank_name(self, value):
+        if not value:
+            raise serializers.ValidationError("은행명은 비워둘 수 없습니다.")
+        return value
+
+    def validate_account_number(self, value):
+        if not value:
+            raise serializers.ValidationError("계좌번호는 비워둘 수 없습니다. ")
+        return value
+
+    def validate_balance(self, value):
+        if value < 0:
+            raise serializers.ValidationError("잔액은 0보다 작을 수 없습니다.")
+        return value
+
 
 class AccountDetailSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(source="user.id", read_only=True)
