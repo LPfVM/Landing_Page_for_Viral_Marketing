@@ -28,4 +28,8 @@ urlpatterns = [
     path("", include("apps.user.urls")),
     path("accounts/", include("apps.account.urls")),
     path("api/v1/transaction/", include("apps.transaction.urls")),
+    # docs
+    path("schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path("redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 ]
