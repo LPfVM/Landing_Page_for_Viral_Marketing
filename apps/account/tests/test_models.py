@@ -13,7 +13,7 @@ User = get_user_model()
 class TestAccount(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            email="test@test.com", nickname="test", password="test_password"
+            email="tests@tests.com", nickname="tests", password="test_password"
         )
         self.user.is_active = True
         self.user.save()

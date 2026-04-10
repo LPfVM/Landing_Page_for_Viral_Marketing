@@ -24,6 +24,8 @@ MY_APPS = [
     "apps.user.apps.UserConfig",
     "apps.account.apps.AccountConfig",
     "apps.transaction.apps.TransactionConfig",
+    "apps.notification.apps.NotificationConfig",
+    "apps.user_profile.apps.UserProfileConfig",
     "apps.analysis.apps.AnalysisConfig",
 ]
 
@@ -123,8 +125,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 
 STATIC_URL = "static/"
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+
 
 APPEND_SLASH = False
 
