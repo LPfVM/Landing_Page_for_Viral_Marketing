@@ -1,4 +1,10 @@
 services:
+  redis:
+    image: redis:7
+    restart: always
+    networks:
+      - backend
+
   db:
     image: postgres:17
     platform: linux/amd64
@@ -39,6 +45,56 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_HOST: db
       DB_PORT: 5432
+      SECRET_KEY: ${SECRET_KEY}
+      DJANGO_SETTINGS_MODULE: config.settings
+    networks:
+      - backend
+
+  celery_worker:
+    build: .
+    platform: linux/amd64
+    command: uv run celery -A config worker --loglevel=info
+    volumes:
+      - .:/app
+      - /app/.venv
+    depends_on:
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
+    environment:
+      DB_NAME: ${DB}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: db
+      DB_PORT: 5432
+      CELERY_BROKER_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY}
+      DJANGO_SETTINGS_MODULE: config.settings
+    networks:
+      - backend
+
+  celery_beat:
+    build: .
+    platform: linux/amd64
+    command: uv run celery -A config beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - .:/app
+      - /app/.venv
+    depends_on:
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
+    environment:
+      DB_NAME: ${DB}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: db
+      DB_PORT: 5432
+      CELERY_BROKER_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY}
+      DJANGO_SETTINGS_MODULE: config.settings
     networks:
       - backend
 
