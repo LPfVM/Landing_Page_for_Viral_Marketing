@@ -73,12 +73,20 @@ class UserLoginView(APIView):
         if serializer.is_valid():
             user = serializer.validated_data["user"]
             refresh = RefreshToken.for_user(user)
-            return Response(
+            response = Response(
                 {
-                    "refresh": str(refresh),
                     "access": str(refresh.access_token),
                 }
             )
+            response.set_cookie(
+                key="refresh_token",
+                value=str(refresh),
+                httponly=True,
+                samesite="Strict",
+                # secure=True,
+                # https 에서만 사용가능하게하는 옵션
+            )
+            return response
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST,
@@ -140,3 +148,18 @@ class UserLogoutView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class UserRefreshTokenView(APIView):
+    # refresh token 테스트 코드
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        refresh_token = request.COOKIES.get("refresh_token")
+        if not refresh_token:
+            return Response(
+                {"message": "refresh 토큰이 없습니다."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        refresh = RefreshToken(refresh_token)
+        return Response({"access": str(refresh.access_token)})

@@ -137,9 +137,12 @@ class TestUserLoginView(APITestCase):
     def test_login(self):
         response = self.client.post(self.url, data=self.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(set(response.data.keys()), {"access", "refresh"})
+        self.assertTrue(response.data["access"])
+        self.assertIn("refresh_token", response.cookies)
+        self.assertTrue(response.cookies["refresh_token"])
 
-    # 없는 유저의 정보를 넣었을 때 예외처리가 되는지
+        # 없는 유저의 정보를 넣었을 때 예외처리가 되는지
+
     def test_user_not_found(self):
         self.data["email"] = "fake_test@test.com"
         response = self.client.post(self.url, data=self.data)
@@ -253,6 +256,12 @@ class TestUserProfileView(APITestCase):
         self.assertEqual(response.data.get("message"), "Deleted successfully")
         self.assertEqual(self.user.is_active, False)
 
+    # put 메서드에 유효하지 않은 데이터가 들어왔을때
+    def test_update_invalid(self):
+
+        response = self.client.put(self.url, data={"nickname": "ascde" * 100})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
 
 class TestUserLogoutView(APITestCase):
     def setUp(self):
@@ -283,3 +292,28 @@ class TestUserLogoutView(APITestCase):
         response = self.client.post(self.url, data={"refresh": refresh})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data.get("message"), "로그아웃 되었습니다.")
+
+
+class TestUserRefreshView(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email="test@test.com",
+            nickname="test",
+            password="testpassword",
+            is_active=True,
+        )
+        self.url = reverse("user:token_refresh")
+
+    def test_no_cookie(self):
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data["message"], "refresh 토큰이 없습니다.")
+
+    def test_token_refresh(self):
+        refresh = RefreshToken.for_user(self.user)
+        self.client.cookies["refresh_token"] = str(refresh)
+        response = self.client.post(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["access"])
