@@ -1,3 +1,6 @@
+from datetime import date
+
+from django.core.validators import MinValueValidator
 from django.db import models
 
 
@@ -14,11 +17,13 @@ class Transaction(models.Model):
     )
 
     # 기본 정보
-    title = models.CharField(max_length=100)
-    description = models.TextField(blank=True)
+    title = models.CharField(max_length=100, verbose_name="제목")
+    description = models.TextField(blank=True, verbose_name="상세")
 
     # 분류용 필드 추가
-    category = models.CharField(max_length=50, blank=True, verbose_name="카테고리")
+    category = models.CharField(
+        max_length=50, blank=True, default="other", verbose_name="카테고리"
+    )
 
     # 거래 유형 및 금액
     transaction_type = models.CharField(
@@ -26,9 +31,13 @@ class Transaction(models.Model):
     )
 
     # 금액
-    transaction_amount = models.IntegerField(verbose_name="거래 금액")
-
-    transaction_date = models.DateField(verbose_name="거래 일자")
+    transaction_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        verbose_name="거래 금액",
+    )
+    transaction_date = models.DateField(default=date.today, verbose_name="거래 일자")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
