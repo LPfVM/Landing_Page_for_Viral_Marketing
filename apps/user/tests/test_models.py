@@ -75,7 +75,7 @@ class TestUser(TestCase):
         with self.assertRaises(IntegrityError):
             User.objects.create_user(**self.data)
             User.objects.create_user(
-                email="test2@tests.com",
+                email="test2@test.com",
                 password="test2_password",
                 nickname=self.data["nickname"],
             )
