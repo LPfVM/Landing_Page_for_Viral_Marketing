@@ -13,7 +13,7 @@ User = get_user_model()
 class TestTransactionSerializer(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            email="tests@tests.com", nickname="tests", password="test_password"
+            email="test@test.com", nickname="test", password="test_password"
         )
         self.account = Account.objects.create(
             user=self.user,

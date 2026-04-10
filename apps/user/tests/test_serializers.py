@@ -14,8 +14,8 @@ User = get_user_model()
 class TestUserSignUPSerializer(TestCase):
     def setUp(self):
         self.data = {
-            "email": "tests@tests.com",
-            "nickname": "tests",
+            "email": "test@test.com",
+            "nickname": "test",
             "password": "test_password",
         }
 
@@ -70,8 +70,8 @@ class TestUserSignUPSerializer(TestCase):
 class TestUserProfileSerializer(TestCase):
     def setUp(self):
         self.data = {
-            "email": "tests@tests.com",
-            "nickname": "tests",
+            "email": "test@test.com",
+            "nickname": "test",
             "password": "test_password",
         }
         self.user = User.objects.create_user(**self.data)
@@ -173,14 +173,14 @@ class TestUserProfileSerializer(TestCase):
 class TestUserLoginSerializer(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            email="tests@tests.com",
-            nickname="tests",
+            email="test@test.com",
+            nickname="test",
             password="test_password",
         )
         self.user.is_active = True
         self.user.save()
         self.data = {
-            "email": "tests@tests.com",
+            "email": "test@test.com",
             "password": "test_password",
         }
 
@@ -218,14 +218,14 @@ class TestUserLoginSerializer(TestCase):
     # authenticate()가 각기 다른 data에 맞는 유저들을 잘 찾는지
     def test_validate_authenticate(self):
         user = User.objects.create_user(
-            email="test2@tests.com",
+            email="test2@test.com",
             nickname="test2",
             password="test2_password",
         )
         user.is_active = True
         user.save()
         data = {
-            "email": "test2@tests.com",
+            "email": "test2@test.com",
             "password": "test2_password",
         }
         serializer = UserLoginSerializer(data=self.data, context={"request": None})

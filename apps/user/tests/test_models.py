@@ -8,7 +8,7 @@ User = get_user_model()
 class TestUserManager(TestCase):
     def setUp(self):
         self.data = {
-            "email": "tests@tests.com",
+            "email": "test@test.com",
             "password": "test_password",
             "nickname": "test_name",
         }
@@ -45,7 +45,7 @@ class TestUserManager(TestCase):
             password=self.data["password"],
             nickname=self.data["nickname"],
         )
-        self.assertEqual(user.email, "TEST@tests.com")
+        self.assertEqual(user.email, "TEST@test.com")
 
     # create_superuser 테스트
     def test_create_superuser(self):
@@ -65,7 +65,7 @@ class TestUserManager(TestCase):
 class TestUser(TestCase):
     def setUp(self):
         self.data = {
-            "email": "tests@tests.com",
+            "email": "test@test.com",
             "password": "test_password",
             "nickname": "test_name",
         }
@@ -111,7 +111,7 @@ class TestUser(TestCase):
     # email 최대 길이 테스트 255자
     def test_valid_max_length_email(self):
         User.objects.create_user(
-            email="t" * 246 + "@tests.com",
+            email="t" * 246 + "@test.com",
             password=self.data["password"],
             nickname=self.data["nickname"],
         )
@@ -121,7 +121,7 @@ class TestUser(TestCase):
     def test_invalid_max_length_email(self):
         with self.assertRaises(DataError):
             User.objects.create_user(
-                email="t" * 247 + "@tests.com",
+                email="t" * 247 + "@test.com",
                 password="test2_password",
                 nickname="test2_name",
             )
@@ -134,8 +134,8 @@ class TestUser(TestCase):
             password="admin_password",
             nickname="admin_name",
         )
-        self.assertFalse(user.has_perm("tests"))
-        self.assertTrue(admin.has_perm("tests"))
+        self.assertFalse(user.has_perm("test"))
+        self.assertTrue(admin.has_perm("test"))
 
     # has_module_perms 테스트
     def test_has_module_perms(self):
@@ -145,5 +145,5 @@ class TestUser(TestCase):
             password="admin_password",
             nickname="admin_name",
         )
-        self.assertFalse(user.has_module_perms("tests"))
-        self.assertTrue(admin.has_module_perms("tests"))
+        self.assertFalse(user.has_module_perms("test"))
+        self.assertTrue(admin.has_module_perms("test"))
