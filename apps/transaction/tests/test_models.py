@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -20,7 +21,7 @@ class TestTransaction(TestCase):
             password="account_password",
             bank_name="test_bank",
             account_number="test_account_number",
-            balance=1000000,
+            balance=100000,
             account_type="INCOME",
         )
         self.data = {
@@ -81,11 +82,18 @@ class TestTransaction(TestCase):
     def test_blank_true_fields(self):
         self.data.pop("category")
         transaction = Transaction.objects.create(**self.data)
-        self.assertEqual(transaction.category, "")
+        transaction.refresh_from_db()
+        self.assertEqual(transaction.category, "other")
 
-    # IntegerField가 float을 어떻게 취급하는지
+    # DecimalField가 잘 작동하는지
     def test_integer_fields(self):
         self.data["transaction_amount"] = 1.9
         transaction = Transaction.objects.create(**self.data)
         transaction.refresh_from_db()
-        self.assertEqual(transaction.transaction_amount, 1)
+        self.assertEqual(transaction.transaction_amount, Decimal("1.90"))
+
+    # transaction_date의 디폴트가 잘 적용이 되는지
+    def test_default_transaction_date(self):
+        self.data.pop("transaction_date")
+        transaction = Transaction.objects.create(**self.data)
+        self.assertEqual(transaction.transaction_date, datetime.date.today())
