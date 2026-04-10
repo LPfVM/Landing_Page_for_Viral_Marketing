@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from celery.schedules import crontab
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -44,6 +45,8 @@ THIRD_PARTY_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "drf_spectacular",
+    "django_celery_results",
+    "django_celery_beat",
 ]
 
 INSTALLED_APPS = MY_APPS + DJANGO_APPS + THIRD_PARTY_APPS
@@ -155,4 +158,20 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+}
+
+# Celery
+CELERY_BROKER_URL = "redis://redis:6379/0"
+CELERY_RESULT_BACKEND = "django-db"
+CELERY_TIMEZONE = "Asia/Seoul"
+
+CELERY_BEAT_SCHEDULE = {
+    "weekly-income-analysis": {
+        "task": "apps.analysis.tasks.run_weekly_analysis",
+        "schedule": crontab(hour=0, minute=0, day_of_week=1),  # 매주 월요일 자정
+    },
+    "monthly-income-analysis": {
+        "task": "apps.analysis.tasks.run_monthly_analysis",
+        "schedule": crontab(hour=0, minute=0, day_of_month=1),  # 매월 1일 자정
+    },
 }
