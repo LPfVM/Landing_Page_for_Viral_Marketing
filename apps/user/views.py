@@ -120,6 +120,12 @@ class UserProfileView(APIView):
 class UserLogoutView(APIView):
     def post(self, request):
         refresh_token = request.data.get("refresh")
+        # refresh가 None이거나 빈 문자열일 때 통과가 돼서 추가함
+        if not refresh_token:
+            return Response(
+                {"message": "refresh 토큰이 없습니다."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         try:
             token = RefreshToken(refresh_token)
             token.blacklist()
