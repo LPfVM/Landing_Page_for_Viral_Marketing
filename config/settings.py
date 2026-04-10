@@ -24,6 +24,8 @@ MY_APPS = [
     "apps.user.apps.UserConfig",
     "apps.account.apps.AccountConfig",
     "apps.transaction.apps.TransactionConfig",
+    "apps.notification.apps.NotificationConfig",
+    "apps.user_profile.apps.UserProfileConfig",
     "apps.analysis.apps.AnalysisConfig",
 ]
 
