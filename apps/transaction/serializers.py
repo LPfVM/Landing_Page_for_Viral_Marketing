@@ -19,7 +19,7 @@ class TransactionListSerializer(serializers.ModelSerializer):
         ]
 
 
-# 상세, 생성, 수정, 삭제용 시리얼라이저
+# 상세, 생성, 수정 시리얼라이저
 class TransactionDetailSerializer(serializers.ModelSerializer):
     bank_name = serializers.CharField(source="account.bank_name", read_only=True)
 

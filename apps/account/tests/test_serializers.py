@@ -13,10 +13,11 @@ User = get_user_model()
 class TestAccountCreateSerializer(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            email="test@test.com", nickname="test", password="test_password"
+            email="test@test.com",
+            nickname="test",
+            password="test_password",
+            is_active=True,
         )
-        self.user.is_active = True
-        self.user.save()
         request = APIRequestFactory().post("/")
         request.user = self.user
         self.context = {"request": request}
@@ -63,10 +64,11 @@ class TestAccountCreateSerializer(TestCase):
 class TestAccountDetailSerializer(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            email="test@test.com", nickname="test", password="test_password"
+            email="test@test.com",
+            nickname="test",
+            password="test_password",
+            is_active=True,
         )
-        self.user.is_active = True
-        self.user.save()
         self.data = {
             "user": self.user,
             "password": "account_password",

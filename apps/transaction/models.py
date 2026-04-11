@@ -3,8 +3,10 @@ from datetime import date
 from django.core.validators import MinValueValidator
 from django.db import models
 
+from utils.models import BaseModel
 
-class Transaction(models.Model):
+
+class Transaction(BaseModel):
     # 거래 유형 정의
     TRANSACTION_TYPES = [
         ("INCOME", "수입"),
@@ -38,12 +40,11 @@ class Transaction(models.Model):
         verbose_name="거래 금액",
     )
     transaction_date = models.DateField(default=date.today, verbose_name="거래 일자")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "transactions"
         ordering = ["-transaction_date", "-created_at"]
+        indexes = [models.Index(fields=["-transaction_date", "-created_at"])]
 
     def __str__(self):
         amount_with_comma = format(self.transaction_amount, ",")
