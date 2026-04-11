@@ -1,11 +1,11 @@
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 
 from apps.transaction.serializers import (
     TransactionDetailSerializer,
     TransactionListSerializer,
 )
-from apps.transaction.services import get_account, get_transactions
+from apps.transaction.services import get_account, get_transaction, get_transactions
 
 
 class TransactionListCreateAPIView(ListCreateAPIView):
@@ -24,3 +24,11 @@ class TransactionListCreateAPIView(ListCreateAPIView):
         account_id = self.kwargs.get("account_id")
         account = get_account(account_id, self.request.user)
         serializer.save(account=account)
+
+
+class TransactionDetailAPIView(RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TransactionDetailSerializer
+
+    def get_object(self):
+        return get_transaction(self.request.user, self.kwargs["pk"])

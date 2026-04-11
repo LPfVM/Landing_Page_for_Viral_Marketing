@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from apps.account.models import Account
 from apps.transaction.models import Transaction
-from apps.transaction.services import get_account, get_transactions
+from apps.transaction.services import get_account, get_transaction, get_transactions
 
 User = get_user_model()
 
@@ -141,3 +141,66 @@ class TestGetTransactions(TestCase):
             transactions[0].transaction_amount, self.transaction2.transaction_amount
         )
         self.assertEqual(list(transactions), [self.transaction2, self.transaction1])
+
+
+class TestGetTransaction(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="test@test.com",
+            nickname="test",
+            password="test_password",
+            is_active=True,
+        )
+        self.user2 = User.objects.create_user(
+            email="test2@test.com",
+            nickname="test2",
+            password="test2_password",
+            is_active=True,
+        )
+        self.account = Account.objects.create(
+            user=self.user,
+            password="account_password",
+            bank_name="test_bank",
+            account_number="111-111-111",
+            balance=1,
+            account_type="INCOME",
+        )
+        self.data = {
+            "title": "title",
+            "description": "description",
+            "category": "category",
+            "transaction_type": "INCOME",
+            "transaction_amount": 1,
+            "transaction_date": "2026-04-08",
+        }
+        self.transaction = Transaction.objects.create(account=self.account, **self.data)
+
+    # transaction 가져오는 게 잘 성공하는지
+    def test_get_own_transaction(self):
+        transaction = get_transaction(self.user, self.transaction.pk)
+        self.assertEqual(transaction, self.transaction)
+
+    # 유저가 또다른 유저의 transaction에 접근할 때 에러가 나는지
+    def test_other_user_access_fail(self):
+        with self.assertRaises(Http404):
+            get_transaction(self.user2, self.transaction.pk)
+
+    # DB에 없는 pk로 쿼리를 보낼 때 에러가 나는지
+    def test_transaction_not_found(self):
+        with self.assertRaises(Http404):
+            get_transaction(self.user, 9999)
+
+    # pk를 빈 문자열로 보냈을 때 에러가 나는지
+    def test_blank_pk(self):
+        with self.assertRaises(ValueError):
+            get_transaction(self.user, "")
+
+    # pk를 None으로 보냈을 때 에러가 나는지
+    def test_missing_pk(self):
+        with self.assertRaises(Http404):
+            get_transaction(self.user, None)
+
+    # pk에 숫자가 아닌 값을 넣었을 때 에러가 나는지
+    def test_invalid_pk(self):
+        with self.assertRaises(ValueError):
+            get_transaction(self.user, "invalid_pk")
