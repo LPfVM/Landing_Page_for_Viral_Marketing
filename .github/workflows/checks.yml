@@ -1,0 +1,71 @@
+# .github/workflows/checks.yml
+
+name: Code Quality Checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: ${{ secrets.DB_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.DB_NAME }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+    - name: Install Packages & Libraries
+      run: uv sync --dev
+
+    - name: Ruff Check
+      run: uv run ruff check .
+
+    - name: Run Django Migration
+      env:
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        DB: ${{ secrets.DB_NAME }}
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_HOST: localhost
+        DB_PORT: 5432
+      run: |
+        uv run python manage.py makemigrations
+        uv run python manage.py migrate
+
+    - name: Run Django Tests
+      env:
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        DB: ${{ secrets.DB_NAME }}
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_HOST: localhost
+        DB_PORT: 5432
+      run: uv run python manage.py test

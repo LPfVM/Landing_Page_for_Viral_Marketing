@@ -1,7 +1,6 @@
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.db import DataError, IntegrityError
 from django.test import TestCase
 
@@ -23,7 +22,6 @@ class TestAccount(TestCase):
             "bank_name": "test_bank",
             "account_number": "111-111-111",
             "balance": 1,
-            "account_type": "INCOME",
         }
 
     # 계좌 생성 테스트
@@ -36,7 +34,6 @@ class TestAccount(TestCase):
         self.assertEqual(account.bank_name, self.data["bank_name"])
         self.assertEqual(account.account_number, self.data["account_number"])
         self.assertEqual(account.balance, self.data["balance"])
-        self.assertEqual(account.account_type, self.data["account_type"])
 
     # 유저가 삭제됐을 때 account가 삭제되는지 테스트
     def test_CASCADE(self):
@@ -82,10 +79,3 @@ class TestAccount(TestCase):
         account = Account.objects.create(**self.data)
         account.refresh_from_db()
         self.assertEqual(account.balance, Decimal("0"))
-
-    # choices 조건을 어겼을 때 에러가 발생하는지
-    def test_choices(self):
-        self.data["account_type"] = "NOT_INCOME"
-        account = Account.objects.create(**self.data)
-        with self.assertRaises(ValidationError):
-            account.full_clean()

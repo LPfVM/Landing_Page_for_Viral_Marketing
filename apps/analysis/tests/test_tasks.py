@@ -19,7 +19,6 @@ class TestAnalysisTasks(TestCase):
             user=self.user,
             bank_name="test_bank",
             account_number="111-222-333",
-            account_type="INCOME",
         )
         self.transaction = Transaction.objects.create(
             account=self.account,
