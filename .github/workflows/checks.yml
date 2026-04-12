@@ -45,8 +45,8 @@ jobs:
     - name: Install Packages & Libraries
       run: uv sync --dev
 
-    - name: Run ruff (Linting)
-      run: uv run ruff check .
+    - name: Run pre-commit
+      run: uv run pre-commit run --all-files
 
     - name: Run Django Migration
       env:
