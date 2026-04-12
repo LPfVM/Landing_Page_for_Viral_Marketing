@@ -45,6 +45,9 @@ jobs:
     - name: Install Packages & Libraries
       run: uv sync --dev
 
+    - name: Ruff Check
+      run: uv run ruff check .
+
     - name: Run Django Migration
       env:
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
