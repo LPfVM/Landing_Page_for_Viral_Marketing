@@ -25,7 +25,6 @@ class TestTransactionListSerializer(TestCase):
             bank_name="bank_name",
             account_number="account_number",
             balance=1000000,
-            account_type="INCOME",
         )
         self.data = {
             "account": self.account,
@@ -75,7 +74,6 @@ class TestTransactionDetailSerializer(TestCase):
             bank_name="bank_name",
             account_number="account_number",
             balance=1000000,
-            account_type="INCOME",
         )
         self.data = {
             "title": "title",

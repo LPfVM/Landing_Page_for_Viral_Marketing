@@ -24,7 +24,6 @@ class TestTransactionListCreateAPIView(APITestCase):
             bank_name="test_bank",
             account_number="111-111-111",
             balance=1,
-            account_type="INCOME",
         )
         self.data = {
             "title": "title",
@@ -101,7 +100,6 @@ class TestTransactionListCreateAPIView(APITestCase):
             bank_name="other_bank",
             account_number="222-222-222",
             balance=1,
-            account_type="INCOME",
         )
         Transaction.objects.create(**self.data, account=account)
         response = self.client.get(self.url)
@@ -124,7 +122,6 @@ class TestTransactionListCreateAPIView(APITestCase):
             bank_name="other_bank",
             account_number="222-222-222",
             balance=1,
-            account_type="INCOME",
         )
         url = reverse("transaction:list_create", kwargs={"account_id": account.pk})
         response = self.client.get(url)
@@ -151,7 +148,6 @@ class TestTransactionListCreateAPIView(APITestCase):
             bank_name="other_bank",
             account_number="222-222-222",
             balance=1,
-            account_type="INCOME",
         )
         url = reverse("transaction:list_create", kwargs={"account_id": account.pk})
         response = self.client.post(url, data=self.data)
@@ -174,7 +170,6 @@ class TestTransactionDetailAPIView(APITestCase):
             bank_name="test_bank",
             account_number="111-111-111",
             balance=1,
-            account_type="INCOME",
         )
         self.data = {
             "title": "title",
@@ -196,7 +191,6 @@ class TestTransactionDetailAPIView(APITestCase):
             bank_name="other_bank",
             account_number="222-222-222",
             balance=1,
-            account_type="INCOME",
         )
         self.transaction = Transaction.objects.create(**self.data, account=self.account)
         self.other_transaction = Transaction.objects.create(

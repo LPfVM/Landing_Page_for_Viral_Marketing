@@ -12,7 +12,6 @@ class AccountCreateSerializer(serializers.ModelSerializer):
             "bank_name",
             "account_number",
             "balance",
-            "account_type",
         ]
 
         read_only_fields = ["id"]
@@ -50,5 +49,4 @@ class AccountDetailSerializer(serializers.ModelSerializer):
             "bank_name",
             "account_number",
             "balance",
-            "account_type",
         ]

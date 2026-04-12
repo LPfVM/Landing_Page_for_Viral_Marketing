@@ -22,7 +22,6 @@ class TestTransaction(TestCase):
             bank_name="test_bank",
             account_number="test_account_number",
             balance=100000,
-            account_type="INCOME",
         )
         self.data = {
             "account": self.account,

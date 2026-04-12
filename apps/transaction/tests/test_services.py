@@ -23,7 +23,6 @@ class TestGetAccount(TestCase):
             bank_name="test_bank",
             account_number="111-111-111",
             balance=1,
-            account_type="INCOME",
         )
 
     # get_account가 잘 작동하는지
@@ -77,7 +76,6 @@ class TestGetTransactions(TestCase):
             bank_name="test_bank",
             account_number="111-111-111",
             balance=1,
-            account_type="INCOME",
         )
         self.data = {
             "title": "title",
@@ -163,7 +161,6 @@ class TestGetTransaction(TestCase):
             bank_name="test_bank",
             account_number="111-111-111",
             balance=1,
-            account_type="INCOME",
         )
         self.data = {
             "title": "title",

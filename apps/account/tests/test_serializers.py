@@ -26,7 +26,6 @@ class TestAccountCreateSerializer(TestCase):
             "bank_name": "bank_name",
             "account_number": "account_number",
             "balance": 1,
-            "account_type": "INCOME",
         }
 
     # data가 valid한지
@@ -51,7 +50,6 @@ class TestAccountCreateSerializer(TestCase):
         self.assertEqual(account.bank_name, self.data["bank_name"])
         self.assertEqual(account.account_number, self.data["account_number"])
         self.assertEqual(account.balance, self.data["balance"])
-        self.assertEqual(account.account_type, self.data["account_type"])
 
     # save()가 잘 되는지
     def test_save(self):
@@ -75,7 +73,6 @@ class TestAccountDetailSerializer(TestCase):
             "bank_name": "test_bank",
             "account_number": "111-111-111",
             "balance": 1,
-            "account_type": "INCOME",
         }
         self.account = Account.objects.create(**self.data)
 
@@ -87,4 +84,3 @@ class TestAccountDetailSerializer(TestCase):
         self.assertEqual(serializer.data["bank_name"], self.account.bank_name)
         self.assertEqual(serializer.data["account_number"], self.account.account_number)
         self.assertEqual(Decimal(serializer.data["balance"]), self.account.balance)
-        self.assertEqual(serializer.data["account_type"], self.account.account_type)
