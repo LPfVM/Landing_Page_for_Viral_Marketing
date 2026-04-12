@@ -157,3 +157,179 @@ class TestTransactionListCreateAPIView(APITestCase):
         response = self.client.post(url, data=self.data)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(Transaction.objects.count(), 0)
+
+
+class TestTransactionDetailAPIView(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email="test@test.com",
+            nickname="test",
+            password="test_password",
+            is_active=True,
+        )
+        self.account = Account.objects.create(
+            user=self.user,
+            password="account_password",
+            bank_name="test_bank",
+            account_number="111-111-111",
+            balance=1,
+            account_type="INCOME",
+        )
+        self.data = {
+            "title": "title",
+            "description": "description",
+            "category": "category",
+            "transaction_type": "INCOME",
+            "transaction_amount": 1,
+            "transaction_date": "2026-04-08",
+        }
+        self.other_user = User.objects.create_user(
+            email="test2@test.com",
+            nickname="test2",
+            password="test2_password",
+            is_active=True,
+        )
+        self.other_account = Account.objects.create(
+            user=self.other_user,
+            password="account_password",
+            bank_name="other_bank",
+            account_number="222-222-222",
+            balance=1,
+            account_type="INCOME",
+        )
+        self.transaction = Transaction.objects.create(**self.data, account=self.account)
+        self.other_transaction = Transaction.objects.create(
+            **self.data, account=self.other_account
+        )
+        self.url = reverse("transaction:detail", kwargs={"pk": self.transaction.pk})
+        self.other_url = reverse(
+            "transaction:detail", kwargs={"pk": self.other_transaction.pk}
+        )
+        self.client.force_authenticate(user=self.user)
+
+    # 로그인되지 않은 유저가 get 요청을 보냈을 때 실패하는지
+    def test_get_unauthenticated(self):
+        self.client.force_authenticate(user=None)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_patch_unauthenticated(self):
+        self.client.force_authenticate(user=None)
+        response = self.client.patch(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    # 로그인되지 않은 유저가 post 요청을 보냈을 때 실패하는지
+    def test_put_unauthenticated(self):
+        self.client.force_authenticate(user=None)
+        response = self.client.put(self.url, {})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    # 로그인되지 않은 유저가 delete 요청을 보냈을 때 실패하는지
+    def test_delete_unauthenticated(self):
+        self.client.force_authenticate(user=None)
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_get_own_transaction_returns_200(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], self.transaction.pk)
+        self.assertEqual(response.data["bank_name"], self.account.bank_name)
+        self.assertEqual(response.data["title"], self.transaction.title)
+        self.assertEqual(response.data["description"], self.transaction.description)
+        self.assertEqual(response.data["category"], self.transaction.category)
+        self.assertEqual(
+            response.data["transaction_type"], self.transaction.transaction_type
+        )
+        self.assertEqual(response.data["transaction_amount"], "1.00")
+        self.assertEqual(
+            response.data["transaction_date"], self.transaction.transaction_date
+        )
+        self.assertEqual(
+            set(response.data.keys()),
+            {
+                "id",
+                "bank_name",
+                "title",
+                "description",
+                "category",
+                "transaction_type",
+                "transaction_amount",
+                "transaction_date",
+            },
+        )
+
+    # 다른 사람의 트랜잭션에 접근했을 때 실패하는지
+    def test_get_other_users_transaction_returns_404(self):
+        response = self.client.get(self.other_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    # 없는 pk로 요청을 보냈을 때 에러가 나는지
+    def test_get_nonexist_transaction_returns_404(self):
+        url = reverse("transaction:detail", kwargs={"pk": 9999})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    # 부분 수정이 잘 되는지
+    def test_patch_own_transaction_returns_200(self):
+        data = {
+            "title": "title2",
+        }
+        response = self.client.patch(self.url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.transaction.refresh_from_db()
+        self.assertEqual(self.transaction.title, "title2")
+
+    # 읽기 전용 필드가 잘 작동하는지
+    def test_patch_read_only_fields_are_ignored(self):
+        data = {"bank_name": "bank_name2", "id": 9999}
+        response = self.client.patch(self.url, data=data)
+        self.transaction.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["bank_name"], self.transaction.account.bank_name)
+        self.assertEqual(response.data["id"], self.transaction.pk)
+
+    # 다른 사람의 트랜잭션에 patch 요청을 했을 때 에러가 나는지
+    def test_patch_other_users_transaction_returns_404(self):
+        data = {"title": "title"}
+        response = self.client.patch(self.other_url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    # put 요청이 잘 되는지
+    def test_put_own_transaction_returns_200(self):
+        updated = {
+            "title": "updated",
+            "description": "updated",
+            "category": "updated",
+            "transaction_type": "EXPENSE",
+            "transaction_amount": 2,
+            "transaction_date": "2026-06-06",
+        }
+        response = self.client.put(self.url, updated)
+        self.transaction.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.transaction.title, updated["title"])
+        self.assertEqual(self.transaction.description, updated["description"])
+        self.assertEqual(self.transaction.category, updated["category"])
+        self.assertEqual(self.transaction.transaction_type, updated["transaction_type"])
+        self.assertEqual(
+            self.transaction.transaction_amount, updated["transaction_amount"]
+        )
+        self.assertEqual(
+            str(self.transaction.transaction_date), updated["transaction_date"]
+        )
+
+    # 내 트랜잭션의 삭제가 잘 되는지
+    def test_delete_own_transaction_returns_204(self):
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Transaction.objects.filter(pk=self.transaction.pk).exists())
+
+    # 다른 유저의 트랜잭션 삭제가 실패하는지
+    def test_delete_other_users_transaction_returns_404(self):
+        response = self.client.delete(self.other_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue(
+            Transaction.objects.filter(pk=self.other_transaction.pk).exists()
+        )
