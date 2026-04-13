@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 
@@ -8,7 +9,17 @@ from apps.transaction.serializers import (
 from apps.transaction.services import get_account, get_transaction, get_transactions
 
 
-class TransactionListCreateAPIView(ListCreateAPIView):
+@extend_schema(tags=["Transaction"])
+class TransactionListSwaggerView(ListCreateAPIView):
+    pass
+
+
+@extend_schema(tags=["Transaction"])
+class TransactionDetailSwaggerView(RetrieveUpdateDestroyAPIView):
+    pass
+
+
+class TransactionListCreateAPIView(TransactionListSwaggerView):
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
@@ -26,7 +37,7 @@ class TransactionListCreateAPIView(ListCreateAPIView):
         serializer.save(account=account)
 
 
-class TransactionDetailAPIView(RetrieveUpdateDestroyAPIView):
+class TransactionDetailAPIView(TransactionDetailSwaggerView):
     permission_classes = [IsAuthenticated]
     serializer_class = TransactionDetailSerializer
 
