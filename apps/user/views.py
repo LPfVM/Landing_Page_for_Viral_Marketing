@@ -3,6 +3,7 @@ from django.core.signing import (
     BadSignature,
     SignatureExpired,
 )
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
@@ -11,6 +12,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenVerifyView,
+)
 
 from .serializers import (
     UserLoginSerializer,
@@ -27,9 +32,30 @@ from .service import (
 User = get_user_model()
 
 
-class UserSignUpView(APIView):
+@extend_schema(tags=["User"])
+class UserSwaggerView(APIView):
+    pass
+
+
+@extend_schema(tags=["Token"])
+class RefreshSwaggerView(APIView):
+    pass
+
+
+@extend_schema(tags=["Token"])
+class CustomTokenObtainPairView(TokenObtainPairView):
+    pass
+
+
+@extend_schema(tags=["Token"])
+class CustomTokenVerifyView(TokenVerifyView):
+    pass
+
+
+class UserSignUpView(UserSwaggerView):
     permission_classes = [AllowAny]
 
+    @extend_schema(request=UserSignUPSerializer)
     def post(self, request):
         serializer = UserSignUPSerializer(data=request.data)
         if serializer.is_valid():
@@ -43,7 +69,7 @@ class UserSignUpView(APIView):
         )
 
 
-class EmailVerifyView(APIView):
+class EmailVerifyView(UserSwaggerView):
     permission_classes = [AllowAny]
 
     def get(self, request):
@@ -63,9 +89,10 @@ class EmailVerifyView(APIView):
         )
 
 
-class UserLoginView(APIView):
+class UserLoginView(UserSwaggerView):
     permission_classes = [AllowAny]
 
+    @extend_schema(request=UserLoginSerializer)
     def post(self, request):
         serializer = UserLoginSerializer(
             data=request.data, context={"request": request}
@@ -93,7 +120,7 @@ class UserLoginView(APIView):
         )
 
 
-class UserProfileView(APIView):
+class UserProfileView(UserSwaggerView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self, pk):
@@ -102,11 +129,13 @@ class UserProfileView(APIView):
             raise PermissionDenied("권환 없음")
         return user
 
+    @extend_schema(responses=UserProfileSerializer)
     def get(self, request, pk):
         user = self.get_object(pk=pk)
         serializer = UserProfileSerializer(user)
         return Response(serializer.data)
 
+    @extend_schema(request=UserProfileSerializer)
     def put(self, request, pk):
         user = self.get_object(pk=pk)
         serializer = UserProfileSerializer(user, data=request.data, partial=True)
@@ -125,9 +154,9 @@ class UserProfileView(APIView):
         )
 
 
-class UserLogoutView(APIView):
+class UserLogoutView(UserSwaggerView):
     def post(self, request):
-        refresh_token = request.data.get("refresh")
+        refresh_token = request.COOKIES.get("refresh_token")
         # refresh가 None이거나 빈 문자열일 때 통과가 돼서 추가함
         if not refresh_token:
             return Response(
@@ -150,7 +179,7 @@ class UserLogoutView(APIView):
         )
 
 
-class UserRefreshTokenView(APIView):
+class UserRefreshTokenView(RefreshSwaggerView):
     # refresh token 테스트 코드
     permission_classes = [AllowAny]
 
@@ -161,5 +190,11 @@ class UserRefreshTokenView(APIView):
                 {"message": "refresh 토큰이 없습니다."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        refresh = RefreshToken(refresh_token)
-        return Response({"access": str(refresh.access_token)})
+        try:
+            refresh = RefreshToken(refresh_token)
+            return Response({"access": str(refresh.access_token)})
+        except TokenError:
+            return Response(
+                {"message": "유효하지 않은 토큰입니다."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
