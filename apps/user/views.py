@@ -13,7 +13,6 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
     TokenVerifyView,
 )
 
@@ -37,17 +36,12 @@ class UserSwaggerView(APIView):
     pass
 
 
-@extend_schema(tags=["Token"])
-class RefreshSwaggerView(APIView):
+@extend_schema(tags=["Auth"])
+class AuthSwaggerView(APIView):
     pass
 
 
-@extend_schema(tags=["Token"])
-class CustomTokenObtainPairView(TokenObtainPairView):
-    pass
-
-
-@extend_schema(tags=["Token"])
+@extend_schema(tags=["Auth"])
 class CustomTokenVerifyView(TokenVerifyView):
     pass
 
@@ -89,7 +83,7 @@ class EmailVerifyView(UserSwaggerView):
         )
 
 
-class UserLoginView(UserSwaggerView):
+class UserLoginView(AuthSwaggerView):
     permission_classes = [AllowAny]
 
     @extend_schema(request=UserLoginSerializer)
@@ -154,7 +148,7 @@ class UserProfileView(UserSwaggerView):
         )
 
 
-class UserLogoutView(UserSwaggerView):
+class UserLogoutView(AuthSwaggerView):
     def post(self, request):
         refresh_token = request.COOKIES.get("refresh_token")
         # refresh가 None이거나 빈 문자열일 때 통과가 돼서 추가함
@@ -179,7 +173,7 @@ class UserLogoutView(UserSwaggerView):
         )
 
 
-class UserRefreshTokenView(RefreshSwaggerView):
+class UserRefreshTokenView(AuthSwaggerView):
     # refresh token 테스트 코드
     permission_classes = [AllowAny]
 
