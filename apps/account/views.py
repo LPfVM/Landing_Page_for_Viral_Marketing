@@ -65,6 +65,7 @@ class AccountDeleteView(AccountSwaggerView):
 class AccountListView(AccountSwaggerView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(responses=AccountDetailSerializer)
     def get(self, request):
         accounts = get_account_list(user=request.user)
         serializer = AccountDetailSerializer(accounts, many=True)

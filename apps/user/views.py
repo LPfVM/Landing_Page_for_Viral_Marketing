@@ -17,7 +17,7 @@ from .serializers import (
     UserProfileSerializer,
     UserSignUPSerializer,
 )
-from .service import (
+from .services import (
     activate_email_user,
     deactivate_user,
     get_user_or_404,
