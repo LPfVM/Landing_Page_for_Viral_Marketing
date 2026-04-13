@@ -282,14 +282,16 @@ class TestUserLogoutView(APITestCase):
 
     # refresh가 유효하지 않은 경우 예외처리가 잘 되는지
     def test_invalid_refresh(self):
-        response = self.client.post(self.url, data={"refresh": "fake_refresh"})
+        self.client.cookies["refresh_token"] = "fake_refresh"
+        response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data.get("message"), "유효하지 않은 토큰 입니다.")
 
     # 로그아웃이 잘 되는지
     def test_valid_refresh(self):
         refresh = RefreshToken.for_user(self.user)
-        response = self.client.post(self.url, data={"refresh": refresh})
+        self.client.cookies["refresh_token"] = str(refresh)
+        response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data.get("message"), "로그아웃 되었습니다.")
 

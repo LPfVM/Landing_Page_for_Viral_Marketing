@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -12,9 +13,15 @@ from apps.account.services import (
 )
 
 
-class AccountCreateView(APIView):
+@extend_schema(tags=["Account"])
+class AccountSwaggerView(APIView):
+    pass
+
+
+class AccountCreateView(AccountSwaggerView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(request=AccountCreateSerializer)
     def post(self, request):
         serializer = AccountCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -33,9 +40,10 @@ class AccountCreateView(APIView):
         )
 
 
-class AccountDetailView(APIView):
+class AccountDetailView(AccountSwaggerView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(responses=AccountDetailSerializer)
     def get(self, request, pk):
         account = get_account(user=request.user, pk=pk)
         serializer = AccountDetailSerializer(account)
@@ -43,7 +51,7 @@ class AccountDetailView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class AccountDeleteView(APIView):
+class AccountDeleteView(AccountSwaggerView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, pk):
@@ -54,9 +62,10 @@ class AccountDeleteView(APIView):
         )
 
 
-class AccountListView(APIView):
+class AccountListView(AccountSwaggerView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(responses=AccountDetailSerializer)
     def get(self, request):
         accounts = get_account_list(user=request.user)
         serializer = AccountDetailSerializer(accounts, many=True)

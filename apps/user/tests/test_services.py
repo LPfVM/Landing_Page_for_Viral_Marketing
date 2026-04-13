@@ -9,7 +9,7 @@ from django.test import TestCase
 from freezegun import freeze_time
 from rest_framework.test import APIRequestFactory
 
-from apps.user.service import (
+from apps.user.services import (
     activate_email_user,
     deactivate_user,
     send_verification_email,
