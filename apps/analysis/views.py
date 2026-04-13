@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics
 from rest_framework.exceptions import status
 from rest_framework.permissions import IsAuthenticated
@@ -10,9 +11,20 @@ from .serializers import AnalysisResponseSerializer, AnalysisSerializer
 from .services import AnalysisService
 
 
-class AnalysisView(APIView):
+@extend_schema(tags=["Analysis"])
+class AnalysisSwaggerView(APIView):
+    pass
+
+
+@extend_schema(tags=["Analysis"])
+class AnalysisListSwaggerView(generics.ListAPIView):
+    pass
+
+
+class AnalysisView(AnalysisSwaggerView):
     permission_classes = (IsAuthenticated,)
 
+    @extend_schema(request=AnalysisSerializer)
     def post(self, request):
         serializer = AnalysisSerializer(data=request.data)
         if not serializer.is_valid():
@@ -38,12 +50,13 @@ class AnalysisView(APIView):
             status=status.HTTP_201_CREATED,
         )
 
+    @extend_schema(responses=AnalysisResponseSerializer)
     def get(self, request, pk):
         analysis = get_object_or_404(Analysis, pk=pk, user=request.user)
         return Response(AnalysisResponseSerializer(analysis).data)
 
 
-class AnalysisListView(generics.ListAPIView):
+class AnalysisListView(AnalysisListSwaggerView):
     permission_classes = (IsAuthenticated,)
     serializer_class = AnalysisResponseSerializer
 

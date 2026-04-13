@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -10,7 +11,12 @@ from apps.notification.services import (
 )
 
 
-class NotificationListAPIView(APIView):
+@extend_schema(tags=["Notification"])
+class NotificationSwaggerView(APIView):
+    pass
+
+
+class NotificationListAPIView(NotificationSwaggerView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -19,7 +25,7 @@ class NotificationListAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class NotificationReadAPIView(APIView):
+class NotificationReadAPIView(NotificationSwaggerView):
     permission_classes = [IsAuthenticated]
 
     def patch(self, request, pk):
