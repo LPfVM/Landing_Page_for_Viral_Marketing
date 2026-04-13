@@ -5,48 +5,30 @@ services:
     networks:
       - backend
 
-  db:
-    image: postgres:17
-    platform: linux/amd64
-    restart: always
-    environment:
-      POSTGRES_DB: ${DB}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - ${DB_PORT}:5432
-    volumes:
-      - LPfVM_data:/var/lib/postgresql/data
-    networks:
-      - backend
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB}" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
   web:
     build: .
     platform: linux/amd64
     restart: always
     working_dir: /app
-    volumes:
-      - .:/app
-      - /app/.venv
+    command: uv run gunicorn config.wsgi:application --bind 0.0.0.0:8000
     ports:
       - "8000:8000"
-    depends_on:
-      db:
-        condition: service_healthy
     environment:
-      DB_NAME: ${DB}
+      DB: ${DB}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: db
-      DB_PORT: 5432
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
       SECRET_KEY: ${SECRET_KEY}
+      DEBUG: ${DEBUG}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
       DJANGO_SETTINGS_MODULE: config.settings
+    depends_on:
+      redis:
+        condition: service_started
     networks:
       - backend
 
@@ -54,22 +36,22 @@ services:
     build: .
     platform: linux/amd64
     command: uv run celery -A config worker --loglevel=info
-    volumes:
-      - .:/app
-      - /app/.venv
     depends_on:
       redis:
         condition: service_started
-      db:
-        condition: service_healthy
     environment:
-      DB_NAME: ${DB}
+      DB: ${DB}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: db
-      DB_PORT: 5432
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
       CELERY_BROKER_URL: redis://redis:6379/0
       SECRET_KEY: ${SECRET_KEY}
+      DEBUG: ${DEBUG}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
       DJANGO_SETTINGS_MODULE: config.settings
     networks:
       - backend
@@ -78,28 +60,25 @@ services:
     build: .
     platform: linux/amd64
     command: uv run celery -A config beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-    volumes:
-      - .:/app
-      - /app/.venv
     depends_on:
       redis:
         condition: service_started
-      db:
-        condition: service_healthy
     environment:
-      DB_NAME: ${DB}
+      DB: ${DB}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: db
-      DB_PORT: 5432
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
       CELERY_BROKER_URL: redis://redis:6379/0
       SECRET_KEY: ${SECRET_KEY}
+      DEBUG: ${DEBUG}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
       DJANGO_SETTINGS_MODULE: config.settings
     networks:
       - backend
-
-volumes:
-  LPfVM_data:
 
 networks:
   backend:

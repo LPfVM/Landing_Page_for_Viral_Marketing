@@ -13,4 +13,4 @@ RUN uv sync --no-dev
 # 현재 위치(프로젝트 루트)의 모든 파일과 디렉토리를 컨테이너의 현재 위치(app)에 복사
 COPY . .
 
-CMD ["uv", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["uv", "run", "gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
